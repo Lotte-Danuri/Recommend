@@ -17,23 +17,14 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Getter
 @Builder
-public class RecommendDto {
-
-    @Field("_id")
-    @Id
-    private ObjectId id;
+public class RecommendSelectDto {
 
     @Field("user_id")
-    private Long memberId;
+    private Long a_memberId;
 
     @Field("item_id")
-    private Long productId;
+    private Long b_productId;
 
     @Field("preference")
-    private Double clickCount;
-
-
-    @Field("created_at")
-    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-    private LocalDateTime createDate;
+    private Double c_clickCount;
 }

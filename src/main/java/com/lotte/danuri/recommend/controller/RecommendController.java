@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.util.List;
 
@@ -18,19 +19,18 @@ import java.util.List;
 public class RecommendController {
     private final RecommendService recommendService;
 
-    /*
-    @PostMapping(value = "", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(value = "/click/{memberId}/{productId}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(value = "상품 클릭", notes = "상품을 클릭한다.")
-    public ResponseEntity<?> upsertClickLog(){
-
+    public ResponseEntity<?> upsertClickLog(@PathVariable("memberId") Long memberId, @PathVariable("productId") Long productId){
+        recommendService.upsertClickLog(memberId, productId);
+        return ResponseEntity.ok().build();
     }
-    */
 
-    @GetMapping(value = "", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(value = "/list/{memberId}", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(value = "추천 상품 조회", notes = "추천 상품을 조회한다.")
-    public ResponseEntity<?> getRecommends() throws UnknownHostException, TasteException {
+    public ResponseEntity<?> getRecommends(@PathVariable("memberId") Long memberId) throws IOException, TasteException {
 
-        List<Long> recommendList = recommendService.getRecommends();
+        List<Long> recommendList = recommendService.getRecommends(memberId);
         return ResponseEntity.ok(recommendList);
     }
 }
