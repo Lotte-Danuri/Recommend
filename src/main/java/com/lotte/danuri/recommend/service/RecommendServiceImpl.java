@@ -4,10 +4,14 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.dataformat.csv.CsvGenerator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.lotte.danuri.recommend.client.ProductServiceClient;
+import com.lotte.danuri.recommend.model.dto.ProductDto;
 import com.lotte.danuri.recommend.model.dto.RecommendSelectDto;
+import com.lotte.danuri.recommend.model.dto.request.ProductListDto;
 import com.lotte.danuri.recommend.repository.RecommendDao;
 import com.lotte.danuri.recommend.util.FileOut;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.mahout.cf.taste.common.TasteException;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.neighborhood.ThresholdUserNeighborhood;
@@ -41,13 +45,15 @@ import static com.lotte.danuri.recommend.util.FileOut.csvFileOut;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RecommendServiceImpl implements RecommendService{
     private final Environment env;
     private final RecommendDao recommendDao;
+    private final ProductServiceClient productServiceClient;
     @Override
-    public List<Long> getRecommends(Long memberId) throws IOException, TasteException {
+    public List<ProductDto> getRecommends(Long memberId) throws IOException, TasteException {
 
-        List<Long> result = new ArrayList<>();
+        List<Long> productRecommendedIds = new ArrayList<>();
         List<RecommendSelectDto> recommendList = recommendDao.selectAllClickLog();
         File csvFile = new File("Clickdata.csv");
         csvFileOut(RecommendSelectDto.class, csvFile, recommendList);
@@ -68,14 +74,28 @@ public class RecommendServiceImpl implements RecommendService{
         List<RecommendedItem> recommended = recommender.recommend(memberId,5);
 
         recommended.forEach(v -> {
-            result.add(v.getItemID());
+            productRecommendedIds.add(v.getItemID());
         });
 
-        return result;
+        List<ProductDto> productDtoList = productServiceClient.getProductList(ProductListDto.builder()
+                        .productId(productRecommendedIds)
+                        .build());
+        return productDtoList;
     }
 
     @Override
     public void upsertClickLog(Long memberId, Long productId){
         recommendDao.upsertClickLog(memberId, productId);
+    }
+
+    @Override
+    public List<Long> getClickCount(ProductListDto productListDto){
+        log.info("Before Retrieve [getClickCount] Method IN [Recommend-Service]");
+        List<Long> result = new ArrayList<>();
+        productListDto.getProductId().forEach(v -> {
+            result.add(recommendDao.selectClickCount(v));
+        });
+        log.info("After Retrieve [getClickCount] Method IN [Recommend-Service]");
+        return result;
     }
 }
