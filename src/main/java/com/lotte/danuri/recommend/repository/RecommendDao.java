@@ -2,6 +2,7 @@ package com.lotte.danuri.recommend.repository;
 
 import com.lotte.danuri.recommend.model.dto.RecommendDto;
 import com.lotte.danuri.recommend.model.dto.RecommendSelectDto;
+import com.lotte.danuri.recommend.model.dto.request.ProductListDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -43,5 +44,19 @@ public class RecommendDao {
         query.fields().exclude("_id");
         query.fields().exclude("created_at");
         return mongoTemplate.find(query, RecommendSelectDto.class, "productClick");
+    }
+
+    public Long selectClickCount(Long productId) {
+        Query query = new Query();
+        query.fields().include("preference");
+        query.addCriteria(Criteria.where("item_id").is(productId));
+
+        List<RecommendSelectDto> recommendSelectDtoList = mongoTemplate.find(query, RecommendSelectDto.class, "productClick");
+
+        Double result = recommendSelectDtoList.stream()
+                              .map(recommendSelectDto -> recommendSelectDto.getC_clickCount())
+                              .reduce(0D, Double::sum);
+
+        return result.longValue();
     }
 }
