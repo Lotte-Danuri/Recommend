@@ -21,16 +21,23 @@ import java.util.List;
 public class RecommendController {
     private final RecommendService recommendService;
 
-    @GetMapping(value = "/click/{memberId}/{productId}", produces = {MediaType.APPLICATION_JSON_VALUE})
-    @ApiOperation(value = "상품 클릭", notes = "상품을 클릭한다.")
-    public ResponseEntity<?> upsertClickLog(@PathVariable("memberId") Long memberId, @PathVariable("productId") Long productId){
+    @GetMapping(value = "/click/login/{productId}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(value = "상품 회원 클릭", notes = "회원이 상품을 클릭한다.")
+    public ResponseEntity<?> upsertClickLog(@RequestHeader(value = "memberId") Long memberId, @PathVariable("productId") Long productId){
         recommendService.upsertClickLog(memberId, productId);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping(value = "/list/{memberId}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @GetMapping(value = "/click/unlogin/{productId}", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(value = "상품 비회원 클릭", notes = "비회원이 상품을 클릭한다.")
+    public ResponseEntity<?> upsertClickLog(@PathVariable("productId") Long productId){
+        recommendService.upsertClickLog(0L, productId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping(value = "/list", produces = {MediaType.APPLICATION_JSON_VALUE})
     @ApiOperation(value = "추천 상품 조회", notes = "추천 상품을 조회한다.")
-    public ResponseEntity<?> getRecommends(@PathVariable("memberId") Long memberId) throws IOException, TasteException {
+    public ResponseEntity<?> getRecommends(@RequestHeader(value = "memberId") Long memberId) throws IOException, TasteException {
         List<ProductDto> recommendList = recommendService.getRecommends(memberId);
         return ResponseEntity.ok(recommendList);
     }
