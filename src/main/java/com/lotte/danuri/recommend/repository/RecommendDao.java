@@ -43,6 +43,9 @@ public class RecommendDao {
         Query query = new Query();
         query.fields().exclude("_id");
         query.fields().exclude("created_at");
+
+        query.addCriteria(Criteria.where("user_id").ne(0L));
+
         return mongoTemplate.find(query, RecommendSelectDto.class, "productClick");
     }
 
