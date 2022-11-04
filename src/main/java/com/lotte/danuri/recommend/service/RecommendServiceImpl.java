@@ -98,4 +98,15 @@ public class RecommendServiceImpl implements RecommendService{
         log.info("After Retrieve [getClickCount] Method IN [Recommend-Service]");
         return result;
     }
+
+    @Override
+    public List<Long> getClickCountByDate(ProductListDto productListDto){
+        log.info("Before Retrieve [getClickCount] Method IN [Recommend-Service]");
+        List<Long> result = new ArrayList<>();
+        productListDto.getProductId().forEach(v -> {
+            result.add(recommendDao.selectClickCountByDate(v,productListDto.getStartDate(),productListDto.getEndDate()));
+        });
+        log.info("After Retrieve [getClickCount] Method IN [Recommend-Service]");
+        return result;
+    }
 }

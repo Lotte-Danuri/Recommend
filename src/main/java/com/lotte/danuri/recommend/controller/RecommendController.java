@@ -49,4 +49,10 @@ public class RecommendController {
         return ResponseEntity.ok(clickCount);
     }
 
+    @PostMapping(value = "/click/date/count", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(value = "기간 별 클릭 총 횟수 조회 ", notes = "기간과 상품 ID 리스트에 의해 클릭 횟수 리스트를 조회한다.")
+    public ResponseEntity<?> getClickCountByDate(@RequestBody ProductListDto productListDto){
+        List<Long> clickCount = recommendService.getClickCountByDate(productListDto);
+        return ResponseEntity.ok(clickCount);
+    }
 }

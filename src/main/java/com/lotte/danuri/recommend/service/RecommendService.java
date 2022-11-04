@@ -14,4 +14,6 @@ public interface RecommendService {
     void upsertClickLog(Long memberId, Long productId);
 
     List<Long> getClickCount(ProductListDto productListDto);
+
+    List<Long> getClickCountByDate(ProductListDto productListDto);
 }

@@ -62,4 +62,22 @@ public class RecommendDao {
 
         return result.longValue();
     }
+
+    public Long selectClickCountByDate(Long productId, LocalDateTime startDate, LocalDateTime endDate) {
+        Query query = new Query();
+        query.fields().include("preference");
+        query.addCriteria(Criteria.where("item_id").is(productId));
+        query.addCriteria(Criteria.where("created_at").lt(endDate).gt(startDate));
+        List<RecommendSelectDto> recommendSelectDtoList = mongoTemplate.find(query, RecommendSelectDto.class, "productClick");
+
+        recommendSelectDtoList.forEach(v -> {
+            System.out.println(v.getC_clickCount());
+        });
+
+        Double result = recommendSelectDtoList.stream()
+                .map(recommendSelectDto -> recommendSelectDto.getC_clickCount())
+                .reduce(0D, Double::sum);
+
+        return result.longValue();
+    }
 }
