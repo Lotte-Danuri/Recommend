@@ -1,7 +1,9 @@
 package com.lotte.danuri.recommend.controller;
 
 import com.lotte.danuri.recommend.model.dto.ProductDto;
+import com.lotte.danuri.recommend.model.dto.request.MemberListDto;
 import com.lotte.danuri.recommend.model.dto.request.ProductListDto;
+import com.lotte.danuri.recommend.model.dto.response.ProductCodeList;
 import com.lotte.danuri.recommend.service.RecommendService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -54,5 +56,12 @@ public class RecommendController {
     public ResponseEntity<?> getClickCountByDate(@RequestBody ProductListDto productListDto){
         List<Long> clickCount = recommendService.getClickCountByDate(productListDto);
         return ResponseEntity.ok(clickCount);
+    }
+
+    @PostMapping(value = "/member/list", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(value = "멤버 리스트에게 추천", notes = "Member ID 리스트로 추천 상품의 ProductCode 리스트를 조회한다.")
+    public ResponseEntity<?> getRecommendsByMemberId(@RequestBody List<MemberListDto> memberListDtos)  throws IOException, TasteException{
+        List<ProductCodeList> productCodeLists = recommendService.getRecommendsByMemberId(memberListDtos);
+        return ResponseEntity.ok(productCodeLists);
     }
 }
