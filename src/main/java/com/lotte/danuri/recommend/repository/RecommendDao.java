@@ -14,6 +14,9 @@ import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static org.springframework.data.mongodb.core.query.Criteria.where;
+import static org.springframework.data.mongodb.core.query.Query.query;
+
 @Repository
 public class RecommendDao {
     @Autowired
@@ -22,8 +25,8 @@ public class RecommendDao {
     public void upsertClickLog(Long memberId, Long productId) {
         Query query = new Query();
 
-        query.addCriteria(Criteria.where("user_id").is(memberId));
-        query.addCriteria(Criteria.where("item_id").is(productId));
+        query.addCriteria(where("user_id").is(memberId));
+        query.addCriteria(where("item_id").is(productId));
 
         RecommendDto dto = mongoTemplate.findOne(query, RecommendDto.class, "productClick");
 
@@ -44,7 +47,7 @@ public class RecommendDao {
         query.fields().exclude("_id");
         query.fields().exclude("created_at");
 
-        query.addCriteria(Criteria.where("user_id").ne(0L));
+        query.addCriteria(where("user_id").ne(0L));
 
         return mongoTemplate.find(query, RecommendSelectDto.class, "productClick");
     }
@@ -52,7 +55,7 @@ public class RecommendDao {
     public Long selectClickCount(Long productId) {
         Query query = new Query();
         query.fields().include("preference");
-        query.addCriteria(Criteria.where("item_id").is(productId));
+        query.addCriteria(where("item_id").is(productId));
 
         List<RecommendSelectDto> recommendSelectDtoList = mongoTemplate.find(query, RecommendSelectDto.class, "productClick");
 
@@ -66,8 +69,8 @@ public class RecommendDao {
     public Long selectClickCountByDate(Long productId, LocalDateTime startDate, LocalDateTime endDate) {
         Query query = new Query();
         query.fields().include("preference");
-        query.addCriteria(Criteria.where("item_id").is(productId));
-        query.addCriteria(Criteria.where("created_at").lt(endDate).gt(startDate));
+        query.addCriteria(where("item_id").is(productId));
+        query.addCriteria(where("created_at").lt(endDate).gt(startDate));
         List<RecommendSelectDto> recommendSelectDtoList = mongoTemplate.find(query, RecommendSelectDto.class, "productClick");
 
         recommendSelectDtoList.forEach(v -> {
@@ -79,5 +82,9 @@ public class RecommendDao {
                 .reduce(0D, Double::sum);
 
         return result.longValue();
+    }
+
+    public boolean existMember(Long memberId) {
+        return mongoTemplate.exists(query(where("user_id").is(memberId)), "productClick");
     }
 }
