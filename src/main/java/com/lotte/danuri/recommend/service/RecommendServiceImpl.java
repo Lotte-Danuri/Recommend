@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -131,7 +132,7 @@ public class RecommendServiceImpl implements RecommendService{
             /* memrberId를 통해 4개의 아이템을 추천 */
             try {
                 if (recommendDao.existMember(v.getMemberId())) {
-                    List<RecommendedItem> recommended = recommender.recommend(v.getMemberId(), 4);
+                    List<RecommendedItem> recommended = recommender.recommend(v.getMemberId(), 12);
                     StringBuilder sb = new StringBuilder();
                     recommended.forEach(w -> {
                         CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitBreaker");
@@ -141,7 +142,14 @@ public class RecommendServiceImpl implements RecommendService{
                         sb.append("/");
                     });
                     String productCode = sb.toString();
-                    productCodeLists.add(ProductCodeList.builder().productCode(productCode.substring(0, productCode.length() - 1)).loginId(v.getLoginId()).build());
+                    String[] productCodeList = productCode.split("/");
+                    String[] resultList = Arrays.stream(productCodeList).distinct().toArray(String[]::new);
+                    String result = "";
+                    for (int i=0; i< resultList.length; i++){
+                            result += resultList[i];
+                        result += "/";
+                    }
+                    productCodeLists.add(ProductCodeList.builder().productCode(result.substring(0, result.length() - 1)).loginId(v.getLoginId()).build());
                 }
             } catch (TasteException e) {
                 throw new RuntimeException(e);
