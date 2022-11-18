@@ -32,6 +32,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static com.lotte.danuri.recommend.util.DeDuplication.deduplication;
 import static com.lotte.danuri.recommend.util.FileOut.csvFileOut;
 
 @Service
@@ -65,7 +66,7 @@ public class RecommendServiceImpl implements RecommendService{
         /* memrberId를 통해 5개의 아이템을 추천 */
         List<RecommendedItem> recommended = new ArrayList<>();
         if (recommendDao.existMember(memberId)) {
-            recommended = recommender.recommend(memberId, 5);
+            recommended = recommender.recommend(memberId, 20);
         }
 
         recommended.forEach(v -> {
@@ -76,8 +77,10 @@ public class RecommendServiceImpl implements RecommendService{
         List<ProductDto> productDtoList = productServiceClient.getProductListById(ProductListDto.builder()
                         .productId(productRecommendedIds)
                         .build());
+
+        List<ProductDto> productDtos = deduplication(productDtoList, ProductDto::getProductCode);
         log.info("After Call [getProductListById] Method IN [Recommend-Service]");
-        return productDtoList;
+        return productDtos;
     }
 
     @Override
