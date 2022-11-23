@@ -20,4 +20,6 @@ public interface RecommendService {
     List<Long> getClickCountByDate(ProductListDto productListDto);
 
     List<ProductCodeList> getRecommendsByMemberId(List<MemberListDto> memberListDtos) throws IOException, TasteException;
+
+    ProductCodeList getRecommendsOneByMemberId(Long memberId)  throws IOException, TasteException;
 }

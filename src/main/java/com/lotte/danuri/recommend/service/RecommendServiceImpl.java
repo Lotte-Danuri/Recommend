@@ -56,21 +56,25 @@ public class RecommendServiceImpl implements RecommendService{
 
         /* 유사도 모델 생성 (코사인유사도 사용)*/
         UserSimilarity similarity = new UncenteredCosineSimilarity(dataModel);
-
+        System.out.println(similarity.userSimilarity(131,127));
         /* 모든 유저들로부터 주어진 유저와 특정 임계값을 충족하거나 초과하는 neighborhood 기준 */
         UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1,similarity, dataModel);
-
+        System.out.println("neightborhood");
+        System.out.println(neighborhood.getUserNeighborhood(131));
         /* 사용자 추천기 생성 */
         UserBasedRecommender recommender = new GenericUserBasedRecommender(dataModel, neighborhood, similarity);
+        System.out.println("recommender");
+        System.out.println(recommender.mostSimilarUserIDs(131,20).toString());
 
         /* memrberId를 통해 5개의 아이템을 추천 */
         List<RecommendedItem> recommended = new ArrayList<>();
         if (recommendDao.existMember(memberId)) {
             recommended = recommender.recommend(memberId, 20);
         }
-
+        System.out.println();
         recommended.forEach(v -> {
             productRecommendedIds.add(v.getItemID());
+            System.out.println(String.valueOf(v.getItemID())+" "+String.valueOf(v.getValue()));
         });
 
         log.info("Before Call [getProductListById] Method IN [Recommend-Service]");
@@ -159,5 +163,51 @@ public class RecommendServiceImpl implements RecommendService{
             }
         });
         return productCodeLists;
+    }
+
+    @Override
+    public ProductCodeList getRecommendsOneByMemberId(Long memberId) throws IOException, TasteException {
+        ProductCodeList productCodeList1 = new ProductCodeList();
+        List<RecommendSelectDto> recommendList = recommendDao.selectAllClickLog();
+        File csvFile = new File("Clickdata.csv");
+        csvFileOut(RecommendSelectDto.class, csvFile, recommendList);
+
+        /* 데이터 모델 생성 */
+        DataModel dataModel = new FileDataModel(csvFile);
+
+        /* 유사도 모델 생성 (코사인유사도 사용)*/
+        UserSimilarity similarity = new UncenteredCosineSimilarity(dataModel);
+
+        /* 모든 유저들로부터 주어진 유저와 특정 임계값을 충족하거나 초과하는 neighborhood 기준 */
+        UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1,similarity, dataModel);
+
+        /* 사용자 추천기 생성 */
+        UserBasedRecommender recommender = new GenericUserBasedRecommender(dataModel, neighborhood, similarity);
+
+        try {
+            if (recommendDao.existMember(memberId)) {
+                List<RecommendedItem> recommended = recommender.recommend(memberId, 12);
+                StringBuilder sb = new StringBuilder();
+                recommended.forEach(v -> {
+                    CircuitBreaker circuitBreaker = circuitBreakerFactory.create("circuitBreaker");
+                    ProductDetailResponseDto productDetailResponseDto = circuitBreaker.run(() -> productServiceClient.getProduct(v.getItemID()),
+                            throwable -> new ProductDetailResponseDto());
+                    sb.append(productDetailResponseDto.getProductCode());
+                    sb.append("/");
+                });
+                String productCode = sb.toString();
+                String[] productCodeList = productCode.split("/");
+                String[] resultList = Arrays.stream(productCodeList).distinct().toArray(String[]::new);
+                String result = "";
+                for (int i=0; i< resultList.length; i++){
+                    result += resultList[i];
+                    result += "/";
+                }
+                productCodeList1 = ProductCodeList.builder().productCode(result.substring(0, result.length() - 1)).build();
+            }
+        } catch (TasteException e) {
+            throw new RuntimeException(e);
+        }
+        return productCodeList1;
     }
 }

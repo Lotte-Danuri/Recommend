@@ -64,4 +64,11 @@ public class RecommendController {
         List<ProductCodeList> productCodeLists = recommendService.getRecommendsByMemberId(memberListDtos);
         return ResponseEntity.ok(productCodeLists);
     }
+
+    @GetMapping(value = "/list/member", produces = {MediaType.APPLICATION_JSON_VALUE})
+    @ApiOperation(value = "추천 상품 조회", notes = "Member Id 로 추천 상품을 조회한다.")
+    public ResponseEntity<?> getRecommendsOneByMemberId(@RequestHeader(value = "memberId") Long memberId) throws IOException, TasteException {
+        ProductCodeList recommend = recommendService.getRecommendsOneByMemberId(memberId);
+        return ResponseEntity.ok(recommend);
+    }
 }
